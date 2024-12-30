@@ -15,5 +15,8 @@ func HandleRequests() {
 	// POST Routes
 	router.POST("/vehicles", controllers.PostVehicle)
 
+	// PUT Routes
+	router.PATCH("/vehicles/:id", controllers.EditVehicle)
+
 	router.Run(":8080")
 }

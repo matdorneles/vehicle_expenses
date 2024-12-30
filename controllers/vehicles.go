@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/matdorneles/vehicle_expenses/models"
@@ -26,15 +27,40 @@ func GetVehicleByID(c *gin.Context) {
 
 func PostVehicle(c *gin.Context) {
 	var newVehicle models.Vehicle
+	var now time.Time = time.Now()
 
-	if err := c.BindJSON(&newVehicle); err != nil {
+	if err := c.ShouldBindJSON(&newVehicle); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	newVehicle.CreatedAt = now.Format("01-02-2006")
 	vehicles = append(vehicles, newVehicle)
 	c.IndentedJSON(http.StatusCreated, newVehicle)
 }
 
+func EditVehicle(c *gin.Context) {
+	var editVehicle models.Vehicle
+	id := c.Param("id")
+
+	if err := c.ShouldBindJSON(&editVehicle); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	for _, v := range vehicles {
+		if v.ID == id {
+			v.Maker = editVehicle.Maker
+			v.Model = editVehicle.Model
+			v.Year = editVehicle.Year
+			c.IndentedJSON(http.StatusAccepted, v)
+			return
+		}
+	}
+	c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Not Found"})
+}
+
+// Temporary until database is implemented
 var vehicles = []models.Vehicle{
 	{ID: "1", Maker: "Toyota", Model: "Etios", Year: "2014", CreatedAt: "27/12/2024"},
 	{ID: "2", Maker: "Fiat", Model: "Toro", Year: "2024", CreatedAt: "27/12/2024"},
